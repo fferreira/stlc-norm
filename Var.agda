@@ -60,6 +60,10 @@ module Subst (exp : ctx -> tp -> Set) (▹ : ∀{T Γ} -> var Γ T -> exp Γ T) 
   weaken : ∀{Γ T S} -> exp Γ T -> exp (Γ , S) T
   weaken M = [ wkn-ren ]r M
 
+  weaken-⊡ : ∀{Γ T} -> exp ⊡ T -> exp Γ T
+  weaken-⊡ {⊡} M = M
+  weaken-⊡ {Γ , T} M = weaken (weaken-⊡ M)
+
   weaken-sub : ∀{Γ T Δ} -> sub Γ Δ -> sub Γ (Δ , T)
   weaken-sub ∅ = ∅
   weaken-sub (x ∷ σ) = (weaken x) ∷ (weaken-sub σ)
