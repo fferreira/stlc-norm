@@ -125,19 +125,7 @@ transitivity refl refl = refl
 subst : ∀ {A} (P : A -> Set) {x y} -> x ≡ y -> P x -> P y
 subst P refl t = t
 
-lemma-long : ∀ {Γ Δ Θ N S} {M : exp {!!} S} {σ : sub Γ Δ} {δ : sub Δ Θ} -> ([
-       ▹ top ∷
-       ([ wkn-ren ]r ([ δ ] N) ∷
-        weaken-sub (δ ∘ σ))
-       ]
-       M) ≡ ([
-       ▹ top ∷
-       ([ ▹ top ∷ weaken-sub δ ]
-        ([ wkn-ren ]r N)
-        ∷ ((▹ top ∷ weaken-sub δ) ∘ weaken-sub σ))
-       ]
-       M)
-lemma-long = {!!}
+-- lemma about composition of substitutions
 
 comp-seq : ∀{Γ Δ Θ T} (σ : sub Γ Δ) (δ : sub Δ Θ) (M : exp Γ T) -> [ δ ∘ σ ] M  ≡ [ δ ] ([ σ ]  M)
 comp-seq ∅ δ M = {!!} 
