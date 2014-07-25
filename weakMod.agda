@@ -40,7 +40,7 @@ _∘_ δ (x ∷ σ) = ([ δ ] x) ∷ (δ ∘ σ)
 
 data value {Γ : ctx} : {T : tp} -> exp Γ T -> Set where
   c : value c
-  ƛ : ∀ {T S} (M : exp (Γ , T) S) -> value (ƛ M)
+  vƛ : ∀ {T S} (M : exp (Γ , T) S) -> value (ƛ M)
 
 -- The language supports the following evaluation rules
 
@@ -125,22 +125,22 @@ transitivity refl refl = refl
 subst : ∀ {A} (P : A -> Set) {x y} -> x ≡ y -> P x -> P y
 subst P refl t = t
 
--- composing substs is the same as applying them one after the other
--- comp-seq : ∀{Γ Δ Θ T} (σ : sub Γ Δ) (δ : sub Δ Θ) (M : exp Γ T) -> [ δ ∘ σ ] M  ≡ [ δ ] ([ σ ]  M)
--- comp-seq σ δ M with δ ∘ σ 
--- comp-seq σ δ c | δ∘σ = refl
--- comp-seq σ δ (▹ x) | δ∘σ = {!!}
-
--- comp-seq ∅ δ (ƛ M) | δ∘σ = {!!}
--- comp-seq (N ∷ σ) δ (ƛ M) | δ∘σ = {!!}
-
--- comp-seq σ δ (M · M₁) | δ∘σ = {!!}
-
-lemma-ƛ : ∀{Γ Δ S T} (σ : sub Γ Δ) (M : exp (Γ , S) T) ->  [ σ ] (ƛ M) ≡ ƛ ([ ▹ top ∷ weaken-sub σ ] M)
-lemma-ƛ σ M = refl
+lemma-long : ∀ {Γ Δ Θ N S} {M : exp {!!} S} {σ : sub Γ Δ} {δ : sub Δ Θ} -> ([
+       ▹ top ∷
+       ([ wkn-ren ]r ([ δ ] N) ∷
+        weaken-sub (δ ∘ σ))
+       ]
+       M) ≡ ([
+       ▹ top ∷
+       ([ ▹ top ∷ weaken-sub δ ]
+        ([ wkn-ren ]r N)
+        ∷ ((▹ top ∷ weaken-sub δ) ∘ weaken-sub σ))
+       ]
+       M)
+lemma-long = {!!}
 
 comp-seq : ∀{Γ Δ Θ T} (σ : sub Γ Δ) (δ : sub Δ Θ) (M : exp Γ T) -> [ δ ∘ σ ] M  ≡ [ δ ] ([ σ ]  M)
-comp-seq ∅ δ M = {!!}
+comp-seq ∅ δ M = {!!} 
 comp-seq (N ∷ σ) δ c = refl
 comp-seq (N ∷ σ) δ (▹ x) = {!!}
 comp-seq (N ∷ σ) δ (ƛ M) with δ ∘ (N ∷ σ)| comp-seq (▹ top ∷ weaken-sub (N ∷ σ)) (▹ top ∷ weaken-sub δ) M
@@ -165,7 +165,7 @@ ml (▹ top) (x ∷ σ) = x
 ml (▹ (pop x)) (x' ∷ σ) = ml (▹ x) σ
 ml (M · N) rσ with ml M rσ 
 ... | h , r = r ([ _ ] N) (ml N rσ)
-ml (ƛ {T} {S} M) rσ = evals-to-value ev-refl (ƛ ([ ▹ top ∷ weaken-sub _ ] M)) , 
+ml (ƛ {T} {S} M) rσ = evals-to-value ev-refl (vƛ ([ ▹ top ∷ weaken-sub _ ] M)) , 
   (λ N → λ rN → lemma-1 _ (subst (red S) (fun-lemma N _ M) (ml M (rN ∷ rσ))) ev-beta)
 
 lemma-id-var : ∀{Γ T}  (x : var Γ T) -> [ id-sub ] (▹ x) ≡ ▹ x
