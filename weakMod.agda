@@ -144,8 +144,7 @@ comp-seq ∅ δ M = {!!}
 comp-seq (N ∷ σ) δ c = refl
 comp-seq (N ∷ σ) δ (▹ x) = {!!}
 comp-seq (N ∷ σ) δ (ƛ M) with δ ∘ (N ∷ σ)| comp-seq (▹ top ∷ weaken-sub (N ∷ σ)) (▹ top ∷ weaken-sub δ) M
-...| δ∘σ  | ih with congruence (λ x → ({!!}) ) ih
-... | foo =  {!!}
+...| δ∘σ  | ih = congruence ƛ (transitivity {!!} ih)
 comp-seq (N ∷ σ) δ (M · M₁) with δ ∘ (N ∷ σ) | comp-seq (N ∷ σ) δ M | comp-seq (N ∷ σ) δ M₁
 ...| δ∘σ  | ih₁ | ih₂ 
   with congruence (λ M' → M' · [ δ ] ([ N ∷ σ ] M₁)) ih₁ | congruence (λ M' → [ δ∘σ ] M · M') ih₂ 
