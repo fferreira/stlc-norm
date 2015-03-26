@@ -3,17 +3,17 @@ module NbEnf where
   open import Data.Unit
 
 data tp : Set where
-  i : tp
+  unit : tp
   _↛_ : tp -> tp -> tp
 
 data exp (Γ : ctx tp) : tp -> Set where
   _·_ : ∀{T S} -> exp Γ (T ↛ S) -> exp Γ T -> exp Γ S
   ƛ : ∀{T S} -> exp (Γ , T) S -> exp Γ (T ↛ S)
   ▹ : ∀{T} -> var tp Γ T -> exp Γ T
-  c : exp Γ i
+  one : exp Γ unit
 
-⟦_⟧t :  ∀ T -> Set
-⟦_⟧t i = Unit
+⟦_⟧t :  (T : tp) -> Set
+⟦_⟧t unit = Unit
 ⟦_⟧t (t ↛ t₁) = ⟦ t ⟧t → ⟦ t₁ ⟧t
 
 data s-env : (Γ : ctx tp) -> Set where
@@ -29,13 +29,13 @@ lookup (ρ , s) (pop x) = lookup ρ x
 ⟦ e · e₁ ⟧ ρ = (⟦ e ⟧ ρ) (⟦ e₁ ⟧ ρ)
 ⟦_⟧ (ƛ e) ρ = λ x → ⟦ e ⟧ (ρ , x)
 ⟦ ▹ x ⟧ ρ = lookup ρ x
-⟦ c ⟧ ρ_ = unit
+⟦ one ⟧ ρ_ = ?
 
 mutual
   data nf (Γ : ctx tp) : tp -> Set where
     ƛ : ∀{T S} -> nf (Γ , T) S -> nf Γ (T ↛ S)
     ne : ∀{T} -> neu Γ T -> nf Γ T
-    c : nf Γ i
+    c : nf Γ unit
 
   data neu (Γ : ctx tp) : tp -> Set where
       _·_ : ∀{T S} -> neu Γ (T ↛ S) -> nf Γ T -> neu Γ S
@@ -45,27 +45,27 @@ mutual
   bn : ∀{Γ T} -> nf Γ T -> exp Γ T
   bn (ƛ n) = ƛ (bn n)
   bn (ne n) = be n
-  bn c = c
+  bn one = ?
 
   be : ∀{Γ T} -> neu Γ T -> exp Γ T
   be (n · n') = be n · bn n'
   be (▹ x) = ▹ x
   
 mutual
-  reflect : ∀ Γ T -> exp Γ T -> ⟦ T ⟧t
-  reflect Γ i e = unit -- ??
-  reflect Γ (t ↛ t₁) e = λ x → reflect Γ t₁ (e · bn (reify Γ t x))
+  reflect : ∀ Γ T -> neu Γ T -> ⟦ T ⟧t
+  reflect Γ unit e = unit 
+  reflect Γ (t ↛ t₁) e = λ x → reflect Γ t₁ (e · reify Γ t x)
 
   reify : ∀ Γ T -> ⟦ T ⟧t -> nf Γ T
-  reify Γ i unit = c
+  reify Γ unit unit = c
   reify Γ (t ↛ t₁) s = ƛ (reify (Γ , t) t₁ (s (reflect (Γ , t) t (▹ top))))
 
 nbe : ∀{T} -> exp ⊡ T -> nf ⊡ T
 nbe e = reify _ _ (⟦ e ⟧ ⊡)
 
-ex0 : exp ⊡ (i ↛ i)
-ex0 = ƛ (▹ top) -- OH OH
+ex0 : exp ⊡ (unit ↛ unit)
+ex0 = ƛ (▹ top)
 
-ex1 : exp ⊡ i
+ex1 : exp ⊡ unit
 ex1 = (ƛ (▹ top)) · c
 
