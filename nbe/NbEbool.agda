@@ -31,7 +31,7 @@ mutual
 data sem-bool : Set where
   tt : sem-bool
   ff : sem-bool
-  stuck : ∀{Γ} -> neu Γ bool  -> sem-bool
+  stuck : (∀{Γ} -> neu Γ bool)  -> sem-bool
 
 ⟦_⟧t :  ∀ T -> Set
 ⟦_⟧t bool = sem-bool
@@ -47,6 +47,29 @@ lookup ⊡ ()
 lookup (ρ , s) top = s
 lookup (ρ , s) (pop x) = lookup ρ x
 
+data splits (Γ : ctx tp) (s : tp) : (Δ : ctx tp) -> Set where
+ yes : ∀ {Γ'} -> splits Γ s (Var._⋈_ tp (Γ Var., s) Γ')
+ no : ∀ {Δ} -> splits Γ s Δ
+
+dec-splits : ∀ Γ s Δ -> splits Γ s Δ
+dec-splits Γ s Δ = {!!}
+
+fresh : ∀ {T} -> (Γ : ctx tp) -> (∀ Γ' -> neu Γ' T)
+fresh {s} Γ Δ with dec-splits Γ s Δ
+fresh Γ ._ | yes = {!!}
+fresh Γ Δ | no = {!!}
+
+mutual
+  reflect : ∀ T -> (∀ Γ -> neu Γ T) -> ⟦ T ⟧t
+  reflect bool e = stuck (e _) -- ??
+  reflect (s ↛ t) u = λ a → reflect t (λ Γ → u Γ · reify s a Γ)
+
+  reify : ∀ T -> ⟦ T ⟧t -> ∀ Γ -> nf Γ T
+  reify bool tt Γ = tt
+  reify bool ff Γ = ff
+  reify bool (stuck n) Γ = ne n -- and poof! it fails
+  reify (s ↛ t) f Γ = ƛ (reify t (f (reflect s (fresh Γ))) (Γ , s))
+
 ⟦_⟧ : ∀{Γ T} -> exp Γ T -> ⟦ Γ ⟧c -> ⟦ T ⟧t
 ⟦ e · e₁ ⟧ ρ = (⟦ e ⟧ ρ) (⟦ e₁ ⟧ ρ)
 ⟦_⟧ (ƛ e) ρ = λ x → ⟦ e ⟧ (ρ , x)
@@ -56,18 +79,9 @@ lookup (ρ , s) (pop x) = lookup ρ x
 ⟦ if c then e1 else e2 ⟧ ρ with ⟦ c ⟧ ρ 
 ⟦ if c then e else _ ⟧ ρ | tt = ⟦ e ⟧ ρ
 ⟦ if c then _ else e ⟧ ρ | ff = ⟦ e ⟧ ρ
-⟦ if c then e1 else e2 ⟧ ρ | stuck st = {!!}
+⟦ if c then e1 else e2 ⟧ ρ | stuck st = reflect _ (λ Γ → if st then (reify _ (⟦ e1 ⟧ ρ) Γ) else reify _ (⟦ e2 ⟧ ρ) Γ)
 
 
-mutual
-  reify : ∀ Γ T -> ⟦ T ⟧t -> nf Γ T
-  reify Γ bool tt = tt
-  reify Γ bool ff = ff
-  reify Γ bool (stuck n) = ne {!n!} -- and poof! it fails
-  reify Γ (t ↛ t₁) s = ƛ (reify (Γ , t) t₁ (s (reflect (Γ , t) t (▹ top))))
 
-  reflect : ∀ Γ T -> neu Γ T -> ⟦ T ⟧t
-  reflect Γ bool e = {!!} -- ??
-  reflect Γ (t ↛ t₁) e = λ x → reflect Γ t₁ (e · (reify Γ t x))
 
 
