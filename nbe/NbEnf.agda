@@ -29,7 +29,7 @@ lookup (ρ , s) (pop x) = lookup ρ x
 ⟦ e · e₁ ⟧ ρ = (⟦ e ⟧ ρ) (⟦ e₁ ⟧ ρ)
 ⟦_⟧ (ƛ e) ρ = λ x → ⟦ e ⟧ (ρ , x)
 ⟦ ▹ x ⟧ ρ = lookup ρ x
-⟦ one ⟧ ρ_ = ?
+⟦ one ⟧ ρ_ = unit
 
 mutual
   data nf (Γ : ctx tp) : tp -> Set where
@@ -41,16 +41,6 @@ mutual
       _·_ : ∀{T S} -> neu Γ (T ↛ S) -> nf Γ T -> neu Γ S
       ▹ : ∀{T} -> var tp Γ T -> neu Γ T
 
-mutual 
-  bn : ∀{Γ T} -> nf Γ T -> exp Γ T
-  bn (ƛ n) = ƛ (bn n)
-  bn (ne n) = be n
-  bn one = ?
-
-  be : ∀{Γ T} -> neu Γ T -> exp Γ T
-  be (n · n') = be n · bn n'
-  be (▹ x) = ▹ x
-  
 mutual
   reflect : ∀ Γ T -> neu Γ T -> ⟦ T ⟧t
   reflect Γ unit e = unit 
@@ -67,5 +57,5 @@ ex0 : exp ⊡ (unit ↛ unit)
 ex0 = ƛ (▹ top)
 
 ex1 : exp ⊡ unit
-ex1 = (ƛ (▹ top)) · c
+ex1 = (ƛ (▹ top)) · one
 
