@@ -61,13 +61,13 @@ fresh Γ Δ | no = {!!}
 
 mutual
   reflect : ∀ T -> (∀ Γ -> neu Γ T) -> ⟦ T ⟧t
-  reflect bool e = stuck (e _) -- ??
+  reflect bool e = stuck (e _)
   reflect (s ↛ t) u = λ a → reflect t (λ Γ → u Γ · reify s a Γ)
 
   reify : ∀ T -> ⟦ T ⟧t -> ∀ Γ -> nf Γ T
   reify bool tt Γ = tt
   reify bool ff Γ = ff
-  reify bool (stuck n) Γ = ne n -- and poof! it fails
+  reify bool (stuck n) Γ = ne n
   reify (s ↛ t) f Γ = ƛ (reify t (f (reflect s (fresh Γ))) (Γ , s))
 
 ⟦_⟧ : ∀{Γ T} -> exp Γ T -> ⟦ Γ ⟧c -> ⟦ T ⟧t
@@ -79,7 +79,8 @@ mutual
 ⟦ if c then e1 else e2 ⟧ ρ with ⟦ c ⟧ ρ 
 ⟦ if c then e else _ ⟧ ρ | tt = ⟦ e ⟧ ρ
 ⟦ if c then _ else e ⟧ ρ | ff = ⟦ e ⟧ ρ
-⟦ if c then e1 else e2 ⟧ ρ | stuck st = reflect _ (λ Γ → if st then (reify _ (⟦ e1 ⟧ ρ) Γ) else reify _ (⟦ e2 ⟧ ρ) Γ)
+⟦ if c then e1 else e2 ⟧ ρ | stuck st = 
+  reflect _ (λ Γ → if st then (reify _ (⟦ e1 ⟧ ρ) Γ) else reify _ (⟦ e2 ⟧ ρ) Γ)
 
 
 
